@@ -16,7 +16,7 @@ window.PAPERTOV_DATA = {
   brand: {
     name: '페이퍼토브',
     nameEn: 'PAPERTOV',            // 로고 워드마크 (영문 표기가 다르면 여기만 수정)
-    owner: '송문찬',                // 푸터 '대표' 표기
+    owner: '',                      // 푸터 '대표' 표기 (비우면 숨김)
     bizNumber: '',                  // 사업자등록번호 예: '000-00-00000'
     address: '',                    // 사업장 주소 (비우면 표시 안 함)
     year: 2026,
