@@ -293,6 +293,7 @@
           <div class="plan__top"><span class="plan__name">${esc(pl.name)}</span>${pl.featured ? '<span class="plan__badge">추천</span>' : ''}</div>
           <p class="plan__label">${esc(pl.label)}</p>
           <p class="plan__price"><span class="plan__num">${esc(pl.price)}</span><span class="plan__unit">${esc(pl.unit)}</span></p>
+          ${pl.maintenance ? `<p class="plan__care">오픈 이후 관리비 <b>${esc(pl.maintenance)}</b></p>` : ''}
           ${pl.fit ? `<p class="plan__fit"><span>이런 곳에 맞습니다</span>${esc(pl.fit)}</p>` : ''}
           <ul class="plan__features">${(pl.features || []).map((f) => `<li>${esc(f)}</li>`).join('')}</ul>
           ${pl.period ? `<p class="plan__period">제작 기간 ${esc(pl.period)}</p>` : ''}

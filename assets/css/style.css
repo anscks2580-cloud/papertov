@@ -431,6 +431,10 @@ html:not(.film) .hero__cue{display:none}
 .plan__price{display:flex;align-items:baseline;gap:8px;margin-top:26px}
 .plan__num{font-family:var(--f-mark);font-weight:500;font-size:clamp(2.75rem,2rem + 2vw,3.75rem);line-height:1;letter-spacing:-.035em;font-variant-numeric:tabular-nums}
 .plan__unit{font-size:.9375rem;color:var(--graphite)}
+.plan__care{margin-top:10px;font-size:.875rem;color:var(--graphite)}
+.plan__care b{font-weight:600;color:var(--ink,currentColor)}
+.plan--featured .plan__care{color:var(--on-night-mute)}
+.plan--featured .plan__care b{color:var(--paper,#fff)}
 .plan--featured .plan__unit,.plan--featured .plan__fit span,.plan--featured .plan__period{color:var(--on-night-mute)}
 .plan__fit{margin-top:24px;padding-block:16px;border-block:1px solid var(--rule);font-size:.9375rem;line-height:1.6}
 .plan--featured .plan__fit{border-color:var(--night-rule)}

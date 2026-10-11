@@ -76,7 +76,7 @@ window.PAPERTOV_DATA = {
       industry: '자동차 딜러',
       category: 'AUTOMOTIVE',
       categoryKo: '수입차 딜러',
-      title: 'BMW Dealer Platform',
+      title: 'Import Car Dealer Platform',
       subtitle: '공식 딜러 개인 홈페이지와 관리자 시스템',
       year: 2026,
       client: '',
@@ -84,7 +84,7 @@ window.PAPERTOV_DATA = {
       host: '',
       preview: 'bmw',
       screen: 'masked',
-      screenNote: '딜러 이름·연락처·주소를 바꾼 데모 화면입니다. 실차 사진 자리는 딜러가 관리자 모드에서 직접 올리는 영역이라 비워 두었습니다.',
+      screenNote: '브랜드명·딜러 이름·연락처·주소를 바꾼 데모 화면입니다. 실차 사진 자리는 딜러가 관리자 모드에서 직접 올리는 영역이라 비워 두었습니다.',
       images: {
         desktop: 'assets/img/portfolio/bmw-dealer/desktop.webp',
         mobile: 'assets/img/portfolio/bmw-dealer/mobile.webp',
@@ -170,8 +170,8 @@ window.PAPERTOV_DATA = {
       url: '',
       host: '',
       preview: 'snap',
-      screen: 'real',
-      screenNote: '',
+      screen: 'masked',
+      screenNote: '브랜드명을 바꾸고 촬영 사진을 흐리게 처리한 데모 화면입니다.',
       images: {
         label: '갤러리',
         desktop: 'assets/img/portfolio/wedding-snap/desktop.webp',
@@ -310,8 +310,8 @@ window.PAPERTOV_DATA = {
       url: '',
       host: '',
       preview: 'academy',
-      screen: 'real',
-      screenNote: '',
+      screen: 'masked',
+      screenNote: '학원명·연락처·주소를 가린 데모 화면입니다.',
       images: {
         label: '첫 화면',
         desktop: 'assets/img/portfolio/math-academy/desktop.webp',
@@ -322,7 +322,7 @@ window.PAPERTOV_DATA = {
       },
       summary: '학부모와 학생이 찾는 정보(학원 소개, 입학 안내, 커리큘럼, 교재, 동영상 강의, 상담 신청)를 첫 화면에서 바로 찾게 했습니다. 로그인하면 관리자·선생님·조교·학생이 각자의 화면으로 들어가는 운영 시스템과 이어집니다.',
       overview: {
-        brand: '중등·고등 수학 전문 학원 (직접 운영 중)',
+        brand: '중등·고등 수학 전문 학원',
         purpose: '학원의 교육 철학과 관리 방식을 보여주고, 상담 신청과 학습 관리를 한곳에서',
         features: [
           '학원 소개, 입학 안내, 커리큘럼, 교재 소개, 졸업생 인터뷰, 언론 보도 페이지',
@@ -332,12 +332,12 @@ window.PAPERTOV_DATA = {
           '역할별 로그인 (관리자, 선생님, 조교, 학생)',
           '강의 영상 배정과 시청 진행률 관리',
         ],
-        design: '깊은 보라 바탕에 골드 포인트, 정보를 카드로 나눠 학부모가 빠르게 찾도록',
+        design: '흰 바탕에 골드 포인트, 정보를 카드로 나눠 학부모가 빠르게 찾도록',
       },
       palette: [
-        { name: 'Night', hex: '#1A1230' },
+        { name: 'White', hex: '#FFFFFF' },
         { name: 'Gold', hex: '#F0C040' },
-        { name: 'Lavender', hex: '#F0EDF8' },
+        { name: 'Ink', hex: '#1A1A1E' },
       ],
       fonts: ['Pretendard'],
       stack: ['HTML', 'CSS', 'JavaScript', 'Firebase Auth', 'Firestore', 'Vimeo API', 'GitHub Pages'],
@@ -491,7 +491,7 @@ window.PAPERTOV_DATA = {
 
   /* ------------------------------------------------------------- 가격
      price 는 화면에 그대로 보이는 숫자, unit 은 그 뒤에 붙는 단위입니다.
-     ※ 아래 금액은 예시입니다. 실제 판매 가격으로 꼭 바꿔 주세요.
+     maintenance 는 오픈 이후 월 관리비입니다.
      ------------------------------------------------------------------------ */
   pricing: {
     note: 'VAT 별도. 도메인 비용은 별도이며, 정확한 견적은 상담 후 안내드립니다.',
@@ -500,8 +500,9 @@ window.PAPERTOV_DATA = {
         id: 'basic',
         name: 'BASIC',
         label: '반응형 홈페이지',
-        price: '80',
+        price: '99',
         unit: '만 원부터',
+        maintenance: '월 5만 원',
         period: '약 2주',
         fit: '처음 홈페이지를 만드는 1인 매장, 스튜디오, 공방',
         features: [
@@ -518,8 +519,9 @@ window.PAPERTOV_DATA = {
         id: 'standard',
         name: 'STANDARD',
         label: '반응형 + 로그인',
-        price: '150',
+        price: '149',
         unit: '만 원부터',
+        maintenance: '월 7만 원',
         period: '약 3주',
         fit: '회원 전용 공간이나 비공개 페이지가 필요한 곳',
         features: [
@@ -535,8 +537,9 @@ window.PAPERTOV_DATA = {
         id: 'premium',
         name: 'PREMIUM',
         label: '데이터 저장 / 관리자 기능',
-        price: '250',
+        price: '199',
         unit: '만 원부터',
+        maintenance: '월 10만 원',
         period: '약 4–6주',
         fit: '사진, 가격, 재고를 자주 바꾸고 신청 내역을 데이터로 관리하고 싶은 곳',
         features: [
