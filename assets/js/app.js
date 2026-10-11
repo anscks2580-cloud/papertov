@@ -1880,33 +1880,46 @@
       if (firstBad) { firstBad.focus(); return; }
       if (f.hp && f.hp.checked) return;
 
-      if (!C.web3formsKey) {
-        setStatus('문의 접수가 아직 연결되지 않아 전송되지 않았습니다. (운영자: site-data.js 의 contact.web3formsKey 에 Web3Forms 키를 입력하세요.)', true);
+      if (!C.telegramEndpoint && !C.web3formsKey) {
+        setStatus('문의 접수가 아직 연결되지 않아 전송되지 않았습니다. (운영자: site-data.js 의 contact.telegramEndpoint 를 입력하세요.)', true);
         return;
       }
       submit.disabled = true;
       const label = submit.textContent;
       submit.textContent = '보내는 중…';
-      const payload = {
-        access_key: C.web3formsKey,
-        subject: C.mailSubject || '홈페이지 제작 문의',
-        from_name: '페이퍼토브 홈페이지',
-        업종: sel.industry,
-        이름: f.name.value.trim(),
-        연락처: f.phone.value.trim(),
-        원하는_홈페이지: sel.plan || '선택 안 함',
-        참고_사이트: f.ref.value.trim() || '-',
-        문의_내용: f.msg.value.trim() || '-',
-        botcheck: '',
+      const v = {
+        industry: sel.industry,
+        name: f.name.value.trim(),
+        phone: f.phone.value.trim(),
+        plan: sel.plan || '선택 안 함',
+        ref: f.ref.value.trim() || '-',
+        message: f.msg.value.trim() || '-',
       };
-      fetch('https://api.web3forms.com/submit', {
+      const post = (url, body) => fetch(url, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json', Accept: 'application/json' },
-        body: JSON.stringify(payload),
-      })
-        .then((r) => r.json())
-        .then((j) => {
-          if (!j || !j.success) throw new Error((j && j.message) || 'failed');
+        body: JSON.stringify(body),
+      }).then((r) => r.json()).then((j) => { if (!j || !j.success) throw new Error((j && j.message) || 'failed'); return true; });
+      const jobs = [];
+      if (C.telegramEndpoint) jobs.push(post(C.telegramEndpoint, Object.assign({ botcheck: '' }, v)));
+      if (C.web3formsKey) {
+        jobs.push(post('https://api.web3forms.com/submit', {
+          access_key: C.web3formsKey,
+          subject: C.mailSubject || '홈페이지 제작 문의',
+          from_name: '페이퍼토브 홈페이지',
+          업종: v.industry,
+          이름: v.name,
+          연락처: v.phone,
+          원하는_홈페이지: v.plan,
+          참고_사이트: v.ref,
+          문의_내용: v.message,
+          botcheck: '',
+        }));
+      }
+      // 연결된 경로 중 하나라도 성공하면 접수 완료로 처리합니다.
+      Promise.allSettled(jobs)
+        .then((res) => {
+          if (!res.some((x) => x.status === 'fulfilled')) throw new Error('failed');
           form.hidden = true;
           $('[data-sent-desc]', sent).textContent = C.responseNote || '';
           sent.hidden = false;

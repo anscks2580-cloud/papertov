@@ -31,7 +31,10 @@ window.PAPERTOV_DATA = {
     hours: '평일 10:00 – 19:00',
     responseNote: '남겨주신 연락처로 영업일 기준 하루 안에 연락드립니다.',
 
-    // 문의 폼 → 이메일 수신: https://web3forms.com 에서 받은 Access Key 를 넣으면 바로 작동합니다.
+    // 문의 폼 → 텔레그램 알림: Cloudflare Worker 주소(https://xxxx.workers.dev)를 넣으면 작동합니다.
+    telegramEndpoint: 'https://papertov-telegram.anscks2580.workers.dev',
+
+    // (선택) 문의 폼 → 이메일 수신: https://web3forms.com 에서 받은 Access Key. 둘 다 넣으면 둘 다 받습니다.
     web3formsKey: '',
     mailSubject: '[페이퍼토브] 새 홈페이지 제작 문의',
 
