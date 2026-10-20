@@ -542,6 +542,10 @@ textarea.input{resize:vertical;min-height:84px}
 .detail[open]{animation:detailIn .55s var(--ease-out)}
 @keyframes detailIn{from{opacity:0;transform:translateY(28px)}to{opacity:1;transform:none}}
 .detail__inner{height:100%;overflow-y:auto;overscroll-behavior:contain;-webkit-overflow-scrolling:touch}
+/* 휴대폰: 아래에 늘 보이는 '닫고 돌아가기' */
+.detail__back{display:none;position:absolute;left:0;right:0;bottom:0;z-index:4;padding:10px var(--gutter) calc(10px + env(safe-area-inset-bottom,0px));background:linear-gradient(180deg,rgba(244,244,241,0),rgba(244,244,241,.96) 40%);pointer-events:none}
+.detail__back .btn{width:100%;pointer-events:auto}
+@media (max-width: 900px){.detail__back{display:block} .detail__nav{padding-bottom:calc(96px + env(safe-area-inset-bottom,0px))}}
 .detail__top{position:sticky;top:0;z-index:3;display:flex;align-items:center;justify-content:space-between;gap:16px;
   padding:calc(14px + env(safe-area-inset-top,0px)) var(--gutter) 14px;background:rgba(244,244,241,.92);-webkit-backdrop-filter:blur(12px);backdrop-filter:blur(12px)}
 .detail__no{color:var(--graphite)}
@@ -604,6 +608,9 @@ textarea.input{resize:vertical;min-height:84px}
 }
 
 @media (max-width: 900px){
+  /* 휴대폰 글자 크기: 데스크톱 기준의 75% (모든 글자가 rem 기준이라 한 줄로 전체가 줄어듭니다) */
+  html{font-size:75%}
+  .input,.select,select,textarea{font-size:16px} /* iOS 가 입력창을 누를 때 화면을 확대하지 않도록 */
   :root{--header-h:60px}
   .gnb,.header-cta{display:none}
   .menu-btn{display:grid}

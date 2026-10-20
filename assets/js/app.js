@@ -138,7 +138,7 @@
       if (sim) {
         const p = P[+sim.getAttribute('data-similar')];
         detail.close();
-        contact.prefill({ industry: p.industry, message: `'${p.title}' 같은 홈페이지를 생각하고 있어요.` });
+        setTimeout(() => contact.prefill({ industry: p.industry, message: `'${p.title}' 같은 홈페이지를 생각하고 있어요.` }), 80);
         return;
       }
       const plan = e.target.closest('[data-plan]');
@@ -852,7 +852,7 @@
       for (let i = dList.length - 1; i > 0; i--) { const j = Math.floor(rand() * (i + 1)); [dList[i], dList[j]] = [dList[j], dList[i]]; }
       for (let i = mList.length - 1; i > 0; i--) { const j = Math.floor(rand() * (i + 1)); [mList[i], mList[j]] = [mList[j], mList[i]]; }
       const cfg = mobile
-        ? { rowH: 2.45, gap: 0.24, latMax: 1.15, mShare: 0.2 }
+        ? { rowH: 1.85, gap: 0.18, latMax: 1.22, mShare: 0.2 } // 화면을 작게 여러 장 — 구가 각지거나 울퉁불퉁해 보이지 않게
         : { rowH: 1.55, gap: 0.16, latMax: 1.26, mShare: 0.22 };
       const panels = ringLayout(cfg, rand, dList, mList);
 
@@ -890,7 +890,7 @@
         nn.set(cl * sL, sl, cl * cL);                        // 바깥을 향하는 법선
         e.set(cL, 0, -sL).multiplyScalar(pn.w);               // 가로 (동쪽)
         u.set(-sl * sL, cl, -sl * cL).multiplyScalar(pn.h);   // 세로 (북쪽)
-        pp.copy(nn).multiplyScalar(R + (rand() - 0.5) * 0.26);
+        pp.copy(nn).multiplyScalar(R + (rand() - 0.5) * (mobile ? 0.1 : 0.26));
         m4.makeBasis(e, u, nn).setPosition(pp);
         mesh.setMatrixAt(i, m4);
         // 빛을 받는 쪽부터, 조금씩 섞여서 켜짐
@@ -1037,7 +1037,7 @@
       const f = new THREE.Vector3(0, path.ly(1), path.lz(1)).sub(cam).normalize();
       const r = new THREE.Vector3().crossVectors(f, UP).normalize();
       const u = new THREE.Vector3().crossVectors(r, f);
-      const cfg = mobile ? { d: 5.0, x: 0, y: 0.9, w: 2.1, turn: 0 } : { d: 6.0, x: -1.45, y: 0.12, w: 3.05, turn: 0.14 };
+      const cfg = mobile ? { d: 5.0, x: 0, y: 0.7, w: 1.6, turn: 0 } : { d: 6.0, x: -1.45, y: 0.12, w: 3.05, turn: 0.14 };
       const pos = cam.clone().addScaledVector(f, cfg.d).addScaledVector(r, cfg.x).addScaledVector(u, cfg.y);
       featRest = { pos, from: pos.clone().addScaledVector(f, 2.2).addScaledVector(u, -1.1), cam, turn: cfg.turn };
       feature.scale.set(cfg.w, cfg.w / feature.userData.aspect, 1);
@@ -1157,7 +1157,8 @@
       renderer.setSize(W, H, false);
       camera.aspect = W / H;
       // 가로 화각 약 60° 기준, 세로 화면에서는 너무 좁아지지 않게
-      camera.fov = clamp((2 * Math.atan(Math.tan(Math.PI / 6) / camera.aspect) * 180) / Math.PI, 34, 58);
+      // 세로 화면에서 화각이 너무 넓으면 구가 원근으로 찌그러져 보입니다 — 최대 46° 로 제한하고 그만큼 멀리서 바라봅니다
+      camera.fov = clamp((2 * Math.atan(Math.tan(Math.PI / 6) / camera.aspect) * 180) / Math.PI, 34, m ? 46 : 58);
       camera.updateProjectionMatrix();
       if (m !== mobile) { mobile = m; if (atlas) buildPanels(); }
       buildPath();
@@ -1801,6 +1802,8 @@
       el.scroll.scrollTop = 0;
     };
 
+    // 상세를 열 때 브라우저 기록을 하나 쌓아, 휴대폰의 '뒤로 가기'(버튼·스와이프)가 사이트를 떠나지 않고 상세만 닫도록 합니다.
+    let pushed = false;
     api.open = (i, from) => {
       cur = mod(i, P.length);
       if (!dlg.open) {
@@ -1811,17 +1814,27 @@
       if (!dlg.open) {
         if (typeof dlg.showModal === 'function') dlg.showModal(); else dlg.setAttribute('open', '');
         root.style.overflow = 'hidden';
+        try { history.pushState({ papertovDetail: true }, '', location.href); pushed = true; } catch (_) { pushed = false; }
       }
     };
     api.close = () => {
-      if (dlg.open) dlg.close();
+      if (!dlg.open) return;
+      if (pushed) { pushed = false; history.back(); return; } // popstate 에서 실제로 닫힙니다
+      dlg.close();
       root.style.overflow = '';
     };
+    window.addEventListener('popstate', () => {
+      if (dlg.open) { pushed = false; dlg.close(); root.style.overflow = ''; }
+    });
+    dlg.addEventListener('cancel', (e) => { // ESC
+      if (pushed) { e.preventDefault(); api.close(); }
+    });
     dlg.addEventListener('close', () => {
       root.style.overflow = '';
+      if (pushed) { pushed = false; try { history.back(); } catch (_) { /* noop */ } }
       if (opener && opener.focus && doc.contains(opener)) opener.focus({ preventScroll: true });
     });
-    $('[data-d-close]', dlg).addEventListener('click', api.close);
+    $$('[data-d-close]', dlg).forEach((b) => b.addEventListener('click', api.close));
     $('[data-d-prev]', dlg).addEventListener('click', () => api.open(cur - 1));
     $('[data-d-next]', dlg).addEventListener('click', () => api.open(cur + 1));
     el.toggles.forEach((b) => b.addEventListener('click', () => { view = b.getAttribute('data-view'); renderDevice(); }));
