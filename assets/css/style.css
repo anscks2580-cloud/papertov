@@ -261,7 +261,7 @@ html:not(.film) .hero__cue{display:none}
   will-change:transform;backface-visibility:hidden}
 .chapter__phone{position:absolute;right:0;bottom:0;width:clamp(132px, 19%, 236px);--pb:7px;--pr:30px;
   transform:translateY(calc((.5 - var(--q,.5)) * 64px));will-change:transform}
-.js .chapter .screen__inner{will-change:transform}
+@media (min-width: 901px){.js .chapter .screen__inner{will-change:transform}}
 .chapter:nth-child(even) .chapter__desktop{margin-left:auto}
 .chapter:nth-child(even) .chapter__phone{right:auto;left:0}
 .chapter__body{display:grid;grid-template-columns:repeat(12,minmax(0,1fr));gap:24px;margin-top:clamp(40px,5vw,80px)}
@@ -623,6 +623,11 @@ textarea.input{resize:vertical;min-height:84px}
   .hero__fsum{display:-webkit-box;-webkit-line-clamp:3;-webkit-box-orient:vertical;overflow:hidden}
   .hero__factions{margin-top:20px}
   .sphere-fallback{top:40%;width:78vw}
+  .hero__space::after{display:none}
+  .chapter__stage{perspective:none}
+  .chapter__desktop{transform:translateY(calc((1 - var(--k,1)) * 18px))}
+  .chapter__phone{transform:translateY(calc((.5 - var(--q,.5)) * 36px))}
+  .mcta{-webkit-backdrop-filter:none;backdrop-filter:none;background:rgba(244,244,241,.97)}
 
   .intro__grid{grid-template-columns:1fr;gap:28px}
 

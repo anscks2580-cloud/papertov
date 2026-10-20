@@ -464,7 +464,8 @@
     let renderer = null, cv = null, lost = false;
     if (!THREE || !hasWebGL()) { fallback(); return; }
     try {
-      renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true, powerPreference: 'high-performance' });
+      // 휴대폰은 안티앨리어싱(MSAA)을 끕니다 — 화면 전체를 몇 배로 그리는 비용이 가장 큰 끊김 원인입니다. 해상도 배율로 충분히 매끈합니다.
+      renderer = new THREE.WebGLRenderer({ antialias: mq.desk.matches, alpha: true, powerPreference: 'high-performance' });
     } catch (e) { fallback(); return; }
     const film = !reduced();
     root.classList.toggle('film', film);
@@ -749,7 +750,7 @@
     }
     function makeCanvasTexture(c) {
       const tex = new THREE.CanvasTexture(c);
-      tex.anisotropy = Math.min(8, renderer.capabilities.getMaxAnisotropy());
+      tex.anisotropy = Math.min(mobile ? 4 : 8, renderer.capabilities.getMaxAnisotropy());
       tex.generateMipmaps = true;
       tex.minFilter = THREE.LinearMipmapLinearFilter;
       return tex;
@@ -851,7 +852,7 @@
       for (let i = dList.length - 1; i > 0; i--) { const j = Math.floor(rand() * (i + 1)); [dList[i], dList[j]] = [dList[j], dList[i]]; }
       for (let i = mList.length - 1; i > 0; i--) { const j = Math.floor(rand() * (i + 1)); [mList[i], mList[j]] = [mList[j], mList[i]]; }
       const cfg = mobile
-        ? { rowH: 2.15, gap: 0.2, latMax: 1.2, mShare: 0.2 }
+        ? { rowH: 2.45, gap: 0.24, latMax: 1.15, mShare: 0.2 }
         : { rowH: 1.55, gap: 0.16, latMax: 1.26, mShare: 0.22 };
       const panels = ringLayout(cfg, rand, dList, mList);
 
@@ -954,7 +955,7 @@
         pageTex = new THREE.Texture(img);
         pageTex.generateMipmaps = true;
         pageTex.minFilter = THREE.LinearMipmapLinearFilter;
-        pageTex.anisotropy = Math.min(8, renderer.capabilities.getMaxAnisotropy());
+        pageTex.anisotropy = Math.min(mobile ? 4 : 8, renderer.capabilities.getMaxAnisotropy());
         pageTex.needsUpdate = true;
         vis = Math.min(1, ((1 - barFrac) / aspect) / (img.naturalHeight / img.naturalWidth));
       } else {
@@ -1333,7 +1334,7 @@
       // 스크롤한 만큼 바로 움직이지 않고 묵직한 관성으로 따라갑니다. 휠 한 칸, 한 칸이 그대로 드러나지 않고
       // 하나의 긴 움직임으로 이어지도록 비행(S)은 느리게, 착지(C)는 종이가 올라오는 실제 스크롤과 어긋나지 않게 조금 빠르게.
       // 프레임이 느린 기기에서도 시간에 맞춰 같은 궤적을 따라갑니다.
-      const wS = 3.4, exS = Math.exp(-wS * dt);
+      const wS = mobile ? 3.0 : 3.4, exS = Math.exp(-wS * dt);
       { const e = sCur - sT, q = sVel + wS * e; sCur = sT + (e + q * dt) * exS; sVel = (sVel - wS * q * dt) * exS; }
       const wC = 5.2, exC = Math.exp(-wC * dt);
       { const e = cCur - cT, q = cVel + wC * e; cCur = cT + (e + q * dt) * exC; cVel = (cVel - wC * q * dt) * exC; }
