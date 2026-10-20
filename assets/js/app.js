@@ -1010,15 +1010,15 @@
       D0 = startDistance();
       const ax = mobile ? 0.55 : 1;
       path = {
-        // 옆으로 살짝 호를 그리며 다가가 PROJECT 01 화면 정면으로 들어갑니다
-        x: monotone([[0, 0], [0.12, 0], [0.28, -1.5 * ax], [0.46, -0.35 * ax], [0.6, 0], [1, 0]]),
-        y: monotone([[0, 0], [0.12, 0.15 * ax], [0.28, 1.3 * ax], [0.46, 0.35 * ax], [0.62, 0.04], [0.7, 0], [0.86, -1.25], [1, -2.6]]),
-        // 초반 아주 느리게 → 중반 빠르게 → 구 앞에서 감속 → 표면 통과는 일정하게 → 안에서 정착
-        z: monotone([[0, D0], [0.12, D0 - 0.09 * (D0 - Rt)], [0.4, Rt + 4.4], [0.56, Rt + 2.0], [0.66, Rt + 0.5], [0.74, Rt - 1.0], [0.86, Rt - 4.8], [1, 2.4]]),
-        lx: monotone([[0, 0], [0.7, 0], [0.8, 0.9], [0.92, 0.2], [1, 0]]),
+        // 옆으로 아주 완만한 호를 그리며 다가가 PROJECT 01 화면 정면으로 들어갑니다 (좌우·상하 흔들림은 최소)
+        x: monotone([[0, 0], [0.12, 0], [0.3, -0.7 * ax], [0.5, -0.18 * ax], [0.64, 0], [1, 0]]),
+        y: monotone([[0, 0], [0.12, 0.08 * ax], [0.3, 0.6 * ax], [0.5, 0.18 * ax], [0.64, 0.02], [0.72, 0], [0.86, -1.25], [1, -2.6]]),
+        // 초반 아주 느리게 → 중반 일정한 속도 → 구 앞에서 부드럽게 감속 → 표면 통과는 일정하게 → 안에서 정착
+        z: monotone([[0, D0], [0.12, D0 - 0.08 * (D0 - Rt)], [0.4, Rt + 4.6], [0.56, Rt + 2.1], [0.66, Rt + 0.5], [0.74, Rt - 1.0], [0.86, Rt - 4.8], [1, 2.4]]),
+        lx: monotone([[0, 0], [0.7, 0], [0.8, 0.5], [0.92, 0.12], [1, 0]]),
         ly: monotone([[0, 0], [0.66, 0], [0.74, -0.8], [0.86, -3.4], [1, -4.4]]),
         lz: monotone([[0, 0], [0.3, 0], [0.42, Rt - 0.2], [0.56, Rt - 3], [0.66, Rt - 7], [0.74, Rt - 10.5], [0.86, -2.2], [1, -3.6]]),
-        roll: monotone([[0, 0], [0.14, 0], [0.3, -0.022 * ax], [0.46, 0.005], [0.6, 0], [1, 0]]),
+        roll: monotone([[0, 0], [0.14, 0], [0.32, -0.008 * ax], [0.5, 0.002], [0.64, 0], [1, 0]]),
       };
       // 착지: 바닥의 빛 쪽으로 내려가며 고개를 숙입니다
       land = {
@@ -1150,7 +1150,8 @@
       measure();
       if (w === W && h === H && m === mobile && path) { wake(); return; }
       W = w; H = h;
-      renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, m ? 1.5 : 1.75));
+      // 해상도는 매 프레임 그리는 비용과 직결됩니다. 또렷함을 크게 잃지 않는 선에서 낮춰 프레임을 고르게 유지합니다.
+      renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, m ? 1.25 : 1.5));
       renderer.setSize(W, H, false);
       camera.aspect = W / H;
       // 가로 화각 약 60° 기준, 세로 화면에서는 너무 좁아지지 않게
@@ -1328,10 +1329,13 @@
       readScroll();
       if (snap) { sCur = sT; sVel = 0; cCur = cT; cVel = 0; snap = false; }
       // 스크롤 → 스프링(임계 감쇠, 정확해) → 카메라
-      // 스크롤한 만큼 바로 움직이지 않고 관성 있게 따라가며, 프레임이 느린 기기에서도 시간에 맞춰 따라갑니다.
-      const w = 6.2, ex = Math.exp(-w * dt);
-      { const e = sCur - sT, q = sVel + w * e; sCur = sT + (e + q * dt) * ex; sVel = (sVel - w * q * dt) * ex; }
-      { const e = cCur - cT, q = cVel + w * e; cCur = cT + (e + q * dt) * ex; cVel = (cVel - w * q * dt) * ex; }
+      // 스크롤한 만큼 바로 움직이지 않고 묵직한 관성으로 따라갑니다. 휠 한 칸, 한 칸이 그대로 드러나지 않고
+      // 하나의 긴 움직임으로 이어지도록 비행(S)은 느리게, 착지(C)는 종이가 올라오는 실제 스크롤과 어긋나지 않게 조금 빠르게.
+      // 프레임이 느린 기기에서도 시간에 맞춰 같은 궤적을 따라갑니다.
+      const wS = 3.4, exS = Math.exp(-wS * dt);
+      { const e = sCur - sT, q = sVel + wS * e; sCur = sT + (e + q * dt) * exS; sVel = (sVel - wS * q * dt) * exS; }
+      const wC = 5.2, exC = Math.exp(-wC * dt);
+      { const e = cCur - cT, q = cVel + wC * e; cCur = cT + (e + q * dt) * exC; cVel = (cVel - wC * q * dt) * exC; }
       if (Math.abs(sT - sCur) < 1e-5 && Math.abs(sVel) < 1e-4) { sCur = sT; sVel = 0; }
       if (Math.abs(cT - cCur) < 1e-5 && Math.abs(cVel) < 1e-4) { cCur = cT; cVel = 0; }
       const S = clamp(sCur, 0, 1), C = clamp(cCur, 0, 1);
@@ -1348,12 +1352,12 @@
         tilt *= Math.exp(-dt * 0.5);
       }
       spin += AUTO * (1 - smooth(0, 0.05, S)) * dt;
-      const km = 1 - Math.exp(-dt / 0.6);
+      const km = 1 - Math.exp(-dt / 1.1);
       mx += (tmx - mx) * km; my += (tmy - my) * km;
       const mOut = 1 - smooth(0.2, 0.5, S);
-      const yawFree = spin + mx * 0.06 * mOut;
-      const pitchFree = BASE_TILT + tilt + my * 0.035 * mOut;
-      const k = lock ? smoother(0.012, 0.42, S) : 0; // 목적지 화면을 정면으로
+      const yawFree = spin + mx * 0.04 * mOut;
+      const pitchFree = BASE_TILT + tilt + my * 0.022 * mOut;
+      const k = lock ? smoother(0.012, 0.46, S) : 0; // 목적지 화면을 정면으로
       world.rotation.y = lock ? lerp(yawFree, lock.yaw, k) : yawFree;
       world.rotation.x = lock ? lerp(pitchFree, lock.pitch, k) : pitchFree;
       world.updateMatrixWorld(true);
@@ -1368,8 +1372,8 @@
       tmpR.crossVectors(tmpF, UP).normalize();
       tmpU.crossVectors(tmpR, tmpF);
       // 마우스: 카메라 시점만 아주 조금 (스크롤 경로와 따로 더해짐)
-      const par = lerp(0.12, 0.85 * Math.min(1, dist / 30), 1 - inside);
-      camPos.addScaledVector(tmpR, -mx * par).addScaledVector(tmpU, my * par * 0.7);
+      const par = lerp(0.08, 0.5 * Math.min(1, dist / 30), 1 - inside);
+      camPos.addScaledVector(tmpR, -mx * par).addScaledVector(tmpU, my * par * 0.6);
       camera.position.copy(camPos);
       camera.up.copy(UP).applyAxisAngle(tmpF, path.roll(S));
       camera.lookAt(camLook);
@@ -1479,10 +1483,13 @@
   }
 
   /* ================================================================ SCROLL SCENES */
+  /* 스크롤 진행도(p)는 휠 한 칸마다 계단처럼 튀지 않도록 시간 기준으로 한 번 걸러서(관성) 장면에 넘깁니다.
+     장면은 값이 목표에 닿을 때까지 매 프레임 이어서 그려지고, 멈추면 루프도 멈춥니다. */
   const scenes = [];
-  let scrollQueued = false;
-  function addScene(el, fn) {
-    const s = { el, fn, on: false };
+  let scrollQueued = false, sceneRaf = 0, sceneLast = 0;
+  const SCENE_TAU = 0.22; // 초 — 클수록 더 묵직하게 따라옵니다
+  function addScene(el, fn, opts) {
+    const s = { el, fn, on: false, p: -1, target: 0, r: null, instant: !!(opts && opts.instant) };
     scenes.push(s);
     sceneIO.observe(el);
     return s;
@@ -1490,7 +1497,7 @@
   const sceneIO = new IntersectionObserver((ents) => {
     ents.forEach((en) => {
       const s = scenes.find((x) => x.el === en.target);
-      if (s) s.on = en.isIntersecting;
+      if (s) { s.on = en.isIntersecting; if (!s.on) s.p = -1; }
     });
     requestScroll();
   }, { rootMargin: '25% 0px 25% 0px' });
@@ -1505,10 +1512,30 @@
     const vh = window.innerHeight;
     for (const s of scenes) {
       if (!s.on) continue;
-      const r = s.el.getBoundingClientRect();
-      s.fn(clamp((vh - r.top) / (vh + r.height), 0, 1), r, vh);
+      s.r = s.el.getBoundingClientRect();
+      s.target = clamp((vh - s.r.top) / (vh + s.r.height), 0, 1);
+      // 처음 보일 때는 그 자리에서 시작 (멀리서 날아오지 않도록)
+      if (s.p < 0 || s.instant || reduced()) { s.p = s.target; s.fn(s.p, s.r, vh); }
     }
     scrollHooks.forEach((h) => h());
+    if (!sceneRaf) { sceneLast = performance.now(); sceneRaf = requestAnimationFrame(sceneFrame); }
+  }
+  function sceneFrame(now) {
+    sceneRaf = 0;
+    const dt = Math.min(0.1, Math.max(0.001, (now - sceneLast) / 1000));
+    sceneLast = now;
+    const k = 1 - Math.exp(-dt / SCENE_TAU);
+    const vh = window.innerHeight;
+    let busy = false;
+    for (const s of scenes) {
+      if (!s.on || s.instant || s.p < 0) continue;
+      const d = s.target - s.p;
+      if (Math.abs(d) < 0.0004) { if (s.p !== s.target) { s.p = s.target; s.fn(s.p, s.r, vh); } continue; }
+      s.p += d * k;
+      s.fn(s.p, s.r, vh);
+      busy = true;
+    }
+    if (busy) sceneRaf = requestAnimationFrame(sceneFrame);
   }
   window.addEventListener('scroll', requestScroll, { passive: true });
   window.addEventListener('resize', requestScroll);
@@ -1527,12 +1554,13 @@
       const y = window.scrollY;
       const menuOpen = root.classList.contains('menu-open');
       header.classList.toggle('is-solid', y > 8 || menuOpen);
-      const down = y > lastY + 2, up = y < lastY - 2;
+      // 작은 흔들림에 헤더가 들락거리지 않도록 방향이 분명할 때만 숨기고 보입니다
+      const down = y > lastY + 8, up = y < lastY - 8;
       if (!menuOpen) {
         if (down && y > 480) header.classList.add('is-hidden');
         else if (up || y < 120) header.classList.remove('is-hidden');
       }
-      lastY = y;
+      if (down || up) lastY = y;
       // 어두운 구 위에서는 밝은 헤더, 종이(소개 섹션)가 올라오면 원래 헤더
       const introTop = intro ? intro.getBoundingClientRect().top : 0;
       const darkUntil = root.classList.contains('film') ? window.innerHeight * 0.2 : 72;
@@ -1611,10 +1639,11 @@
     if (reduced()) return;
     items.forEach((it) => {
       addScene(it.ch, (p) => {
-        const k = easeOut(clamp((p - 0.04) / 0.32, 0, 1));
+        // 목업이 서서히 일어서고(k), 화면 속 페이지가 길게 한 번 내려갑니다(pan). 구간을 넓게 잡아 급한 움직임이 없게.
+        const k = easeOut(clamp((p - 0.02) / 0.4, 0, 1));
         it.ch.style.setProperty('--k', k.toFixed(4));
         it.ch.style.setProperty('--q', p.toFixed(4));
-        const pan = easeInOut(clamp((p - 0.3) / 0.5, 0, 1));
+        const pan = easeInOut(clamp((p - 0.22) / 0.62, 0, 1));
         if (it.d) it.d.inner.style.setProperty('--pan', (-pan * it.d.max * 0.7).toFixed(1) + 'px');
         if (it.ph) it.ph.inner.style.setProperty('--pan', (-pan * it.ph.max * 0.55).toFixed(1) + 'px');
       });
@@ -1700,11 +1729,9 @@
     };
     watch();
     mq.desk.addEventListener && mq.desk.addEventListener('change', watch);
-    if (list) addScene(list, () => {
-      const r = list.getBoundingClientRect();
-      const vh = window.innerHeight;
+    if (list) addScene(list, (_, r, vh) => {
       list.style.setProperty('--pf', clamp((vh * 0.5 - r.top) / r.height, 0, 1).toFixed(4));
-    });
+    }, { instant: true });
   }
 
   /* ================================================================ DETAIL (dialog) */
