@@ -1011,14 +1011,15 @@
       const ax = mobile ? 0.55 : 1;
       path = {
         // 옆으로 아주 완만한 호를 그리며 다가가 PROJECT 01 화면 정면으로 들어갑니다 (좌우·상하 흔들림은 최소)
-        x: monotone([[0, 0], [0.12, 0], [0.3, -0.7 * ax], [0.5, -0.18 * ax], [0.64, 0], [1, 0]]),
-        y: monotone([[0, 0], [0.12, 0.08 * ax], [0.3, 0.6 * ax], [0.5, 0.18 * ax], [0.64, 0.02], [0.72, 0], [0.86, -1.25], [1, -2.6]]),
+        // 다가가는 동안은 좌우·상하 이동 없이 곧게(돌리) — 흔들림의 원인이 되는 호·기울기는 쓰지 않습니다
+        x: monotone([[0, 0], [1, 0]]),
+        y: monotone([[0, 0], [0.72, 0], [0.86, -1.25], [1, -2.6]]),
         // 초반 아주 느리게 → 중반 일정한 속도 → 구 앞에서 부드럽게 감속 → 표면 통과는 일정하게 → 안에서 정착
         z: monotone([[0, D0], [0.12, D0 - 0.08 * (D0 - Rt)], [0.4, Rt + 4.6], [0.56, Rt + 2.1], [0.66, Rt + 0.5], [0.74, Rt - 1.0], [0.86, Rt - 4.8], [1, 2.4]]),
         lx: monotone([[0, 0], [0.7, 0], [0.8, 0.5], [0.92, 0.12], [1, 0]]),
         ly: monotone([[0, 0], [0.66, 0], [0.74, -0.8], [0.86, -3.4], [1, -4.4]]),
         lz: monotone([[0, 0], [0.3, 0], [0.42, Rt - 0.2], [0.56, Rt - 3], [0.66, Rt - 7], [0.74, Rt - 10.5], [0.86, -2.2], [1, -3.6]]),
-        roll: monotone([[0, 0], [0.14, 0], [0.32, -0.008 * ax], [0.5, 0.002], [0.64, 0], [1, 0]]),
+        roll: monotone([[0, 0], [1, 0]]),
       };
       // 착지: 바닥의 빛 쪽으로 내려가며 고개를 숙입니다
       land = {
@@ -1192,7 +1193,7 @@
       if (feature && feature.visible && feature.material.uniforms.uOpacity.value > 0.6 && ray.intersectObject(feature).length) {
         return { kind: 'feature', project: FEAT };
       }
-      if (film && sCur > 0.3) return null;
+      if (film && sCur > 0.02) return null;
       if (target && target.visible && ray.intersectObject(target).length) return { kind: 'target', project: FEAT };
       const hits = ray.intersectObject(mesh);
       for (const h of hits) {
@@ -1347,17 +1348,18 @@
 
       // 구의 회전: 자동(스크롤을 시작하면 멈춤) + 드래그 관성 + 마우스(미세)
       if (!drag) {
-        spin += spinVel * dt; spinVel *= Math.exp(-dt * 2.4);
-        tilt += tiltVel * dt; tiltVel *= Math.exp(-dt * 2.4);
+        const damp = 2.4 + 14 * smooth(0, 0.03, S); // 스크롤이 시작되면 드래그 관성을 빠르게 멈춥니다
+        spin += spinVel * dt; spinVel *= Math.exp(-dt * damp);
+        tilt += tiltVel * dt; tiltVel *= Math.exp(-dt * damp);
         tilt *= Math.exp(-dt * 0.5);
       }
       spin += AUTO * (1 - smooth(0, 0.05, S)) * dt;
       const km = 1 - Math.exp(-dt / 1.1);
       mx += (tmx - mx) * km; my += (tmy - my) * km;
-      const mOut = 1 - smooth(0.2, 0.5, S);
+      const mOut = 1 - smooth(0.01, 0.1, S); // 스크롤이 시작되면 마우스 영향은 바로 사라집니다
       const yawFree = spin + mx * 0.04 * mOut;
       const pitchFree = BASE_TILT + tilt + my * 0.022 * mOut;
-      const k = lock ? smoother(0.012, 0.46, S) : 0; // 목적지 화면을 정면으로
+      const k = lock ? smoother(0.01, 0.3, S) : 0; // 목적지 화면을 정면으로 — 카메라가 많이 움직이기 전에 회전을 끝냅니다
       world.rotation.y = lock ? lerp(yawFree, lock.yaw, k) : yawFree;
       world.rotation.x = lock ? lerp(pitchFree, lock.pitch, k) : pitchFree;
       world.updateMatrixWorld(true);
@@ -1372,13 +1374,13 @@
       tmpR.crossVectors(tmpF, UP).normalize();
       tmpU.crossVectors(tmpR, tmpF);
       // 마우스: 카메라 시점만 아주 조금 (스크롤 경로와 따로 더해짐)
-      const par = lerp(0.08, 0.5 * Math.min(1, dist / 30), 1 - inside);
+      const par = lerp(0.08, 0.5 * Math.min(1, dist / 30), 1 - inside) * mOut;
       camPos.addScaledVector(tmpR, -mx * par).addScaledVector(tmpU, my * par * 0.6);
       camera.position.copy(camPos);
       camera.up.copy(UP).applyAxisAngle(tmpF, path.roll(S));
       camera.lookAt(camLook);
       // 처음 화면에서 구를 아주 조금 위로 — 아래쪽 글과 겹치지 않게 (날아가기 시작하면 정중앙으로)
-      camera.setViewOffset(W, H, 0, H * (mobile ? 0.1 : 0.035) * (1 - smooth(0.04, 0.32, S)), W, H);
+      camera.setViewOffset(W, H, 0, H * (mobile ? 0.1 : 0.035) * (1 - smoother(0.02, 0.6, S)), W, H);
       camera.updateProjectionMatrix();
       camera.updateMatrixWorld();
 
